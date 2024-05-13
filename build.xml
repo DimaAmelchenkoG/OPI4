@@ -20,11 +20,11 @@
         <mkdir dir="${test.classes.dir}"/>
     </target>
 
-    <target name="compile-source-code" depends="prepare">
+    <target name="compile" depends="prepare">
         <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" includeantruntime="false"/>
     </target>
 
-    <target name="build" depends="compile-source-code">
+    <target name="build" depends="compile">
         <copy todir="${build.dir}">
             <fileset dir="${web.dir}"/>
         </copy>
