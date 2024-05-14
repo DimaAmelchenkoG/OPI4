@@ -6,11 +6,25 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 
 
+/**
+ * Entity class for tablepoint
+ * Contains x, y, r, target, date, time
+ */
 @SessionScoped
 @Entity
 @Table(name = "tablepoint")
 public class Point implements Serializable {
 
+    /**
+     * Default constructor
+     * @param x
+     * @param y
+     * @param r
+     * @param target
+     * @param date
+     * @param time
+     * @param id
+     */
     public Point(){}
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +46,11 @@ public class Point implements Serializable {
     @Column(name = "point_time", nullable = false)
     private String  time;
 
+    /**
+     * @param s
+     * @param s1
+     * @param number
+     */
     public Point(String s, String s1, String number) {
         this.x = s;
         this.y = Double.parseDouble(s1);
@@ -39,6 +58,9 @@ public class Point implements Serializable {
     }
 
 
+    /**
+     * @return x
+     */
     public String getX() {
         return x;
     }
@@ -55,6 +77,9 @@ public class Point implements Serializable {
         this.y = y;
     }
 
+    /**
+     * @return r
+     */
     @Override
     public String toString() {
         return "Point{x=" + x + '\'' +
