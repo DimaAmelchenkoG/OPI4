@@ -37,7 +37,7 @@
         <jar destfile="${build.dir}/${ant.project.name}.jar">
             <fileset dir="${classes.dir}"/>
             <manifest>
-                <attribute name="Created-By" value="Pelmeshka"/>
+                <attribute name="Created-By" value="abebka228"/>
                 <attribute name="Manifest-Version" value="1.0"/>
                 <attribute name="Main-Class" value="NoClass"/>
             </manifest>
@@ -45,7 +45,7 @@
         <war destfile="${build.dir}/${ant.project.name}.war" webxml="${build.web.xml}">
             <fileset dir="${build.dir}"/>
             <manifest>
-                <attribute name="Created-By" value="Pelmeshka"/>
+                <attribute name="Created-By" value="abebka228"/>
                 <attribute name="Manifest-Version" value="1.0"/>
                 <attribute name="Main-Class" value="NoClass"/>
             </manifest>
@@ -77,6 +77,11 @@
         </junit>
     </target>
 
+    <target name="native2ascii">
+    <native2ascii encoding="UTF8" src="${src.dir}" dest="${build.dir}" includes="**/*.properties">
+        <mapper type="glob" from="*.properties" to="*_ascii.properties"/>
+    </native2ascii>
+</target>
 
     <!--    <target name="xml">-->
     <!--        <echo message="***** XML STARTED *****"/>-->
