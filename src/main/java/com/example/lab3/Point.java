@@ -32,6 +32,11 @@ public class Point implements Serializable {
     @Column(name = "point_time", nullable = false)
     private String  time;
 
+    public Point(String s, String s1, String number) {
+        this.x = s;
+        this.y = Double.parseDouble(s1);
+        this.r = number;
+    }
 
 
     public String getX() {

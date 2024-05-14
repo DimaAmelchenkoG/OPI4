@@ -24,18 +24,18 @@ public class TargetChecker {
         }
     }
 
-    private boolean checkSquare(Float x, Float y, Float r){
+    public boolean checkSquare(Float x, Float y, Float r){
         //System.out.println((x <= 0 & x <= r/2) & (y <= 0 & y <= r));
         return (x <= 0 & x >= -r/2) & (y <= 0 & y >= -r);
     }
 
-    private boolean checkTriangle(Float x, Float y, Float r){
+    public boolean checkTriangle(Float x, Float y, Float r){
         //System.out.println(x + " " + y + " " + r);
         //System.out.println( (x >= 0 & y >= 0) & ((x*x + y*y) <= r*r));
         return (x >= 0 & y >= 0) & (y <= r & x <= r) & (x + y <= r);
     }
 
-    private boolean checkCircle(Float x, Float y, Float r){
+    public boolean checkCircle(Float x, Float y, Float r){
         //System.out.println((x <= 0 & y >= 0) & ((x*x + y*y) <= (r*r)/4));
         return (x <= 0 & y >= 0) & ((x*x + y*y) <= (r*r)/4);
     }
