@@ -78,7 +78,7 @@
     </target>
 
     <target name="native2ascii">
-    <native2ascii encoding="UTF8" src="${src.dir}" dest="${build.dir}" includes="**/*.properties">
+    <native2ascii encoding="UTF8" src="${src.dir}" dest="${native2ascii.resources}" includes="**/*.properties">
         <mapper type="glob" from="*.properties" to="*_ascii.properties"/>
     </native2ascii>
 </target>
