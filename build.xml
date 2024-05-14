@@ -27,7 +27,8 @@
     </target>
 
     <target name="compile" depends="prepare">
-        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" includeantruntime="false"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" includeantruntime="false"
+               failonerror="true" errorProperty="abebka"/>
     </target>
 
     <target name="build" depends="compile, music">
@@ -91,7 +92,6 @@
                 </fileset>
             </batchtest>
         </junit>
-        <!--        <property name="testo" value="${tests.failed}"/>-->
     </target>
 
     <target name="native2ascii">
@@ -169,7 +169,25 @@
             </sequential>
         </for>
     </target>
+    <!--  <for list="${classes.list}" param="class">
+    <sequential>
+        <condition property="changed">
+            <contains string="${git.status}" substring="@{class}"/>
+        </condition>
+    </sequential>
+                   <if>
+            <isset property="changed"/>
+            <then>
 
+                <exec executable="git">
+                    <arg line="add *"/>
+                </exec>
+                <exec executable="git">
+                    <arg line="commit -m 'Commit changes in classes'"/>
+                </exec>
+            </then>
+        </if>
+</for> -->
 
 
     <target name="alt">
@@ -187,7 +205,8 @@
             <fileset dir="${other.main.dir}"/>
         </replaceregexp>
 
-        <move file="${other.main.dir}/java/com/example/lab3/${our.class}.java" tofile="${other.main.dir}/java/com/example/lab3/${their.class}.java"/>
+        <move file="${other.main.dir}/java/com/example/lab3/${our.class}.java"
+              tofile="${other.main.dir}/java/com/example/lab3/${their.class}.java"/>
         <antcall target="build" inheritRefs="true">
             <param name="src.dir" value="${other.main.dir}"/>
             <param name="build.dir" value="alttarget"/>
@@ -196,28 +215,7 @@
 
     </target>
 
-    <!--  <for list="${classes.list}" param="class">
-        <sequential>
-            <condition property="changed">
-                <contains string="${git.status}" substring="@{class}"/>
-            </condition>
-        </sequential>
-                       <if>
-                <isset property="changed"/>
-                <then>
-
-                    <exec executable="git">
-                        <arg line="add *"/>
-                    </exec>
-                    <exec executable="git">
-                        <arg line="commit -m 'Commit changes in classes'"/>
-                    </exec>
-                </then>
-            </if>
-    </for> -->
-
     <target name="report" depends="test">
-        <!-- Вывод результата выполнения тестов -->
         <!-- Если тесты прошли успешно, выполнение commit -->
         <if>
             <not>
@@ -226,13 +224,58 @@
             <then>
                 <echo message="Tests passed"/>
                 <exec executable="git">
-                    <arg line="add ${junit.output.dir}/*.xml"/>
+                    <arg line="add ${junit.report.dir}/*.xml"/>
                 </exec>
                 <exec executable="git">
                     <arg line="commit -m 'Add JUnit report'"/>
                 </exec>
             </then>
         </if>
+    </target>
+
+    <!--    **history** - если проект не удаётся скомпилировать (цель compile), загружается предыдущая версия из
+    репозитория svn. Операция повторяется до тех пор, пока проект не удастся собрать, либо не будет получена самая
+    первая ревизия из репозитория. Если такая ревизия найдена, то формируется файл, содержащий результат операции
+    diff для всех файлов, измёненных в ревизии, следующей непосредственно за последней работающей.-->
+    <target name="history">
+        <property name="revision" value="3"/>
+        <for begin="3" end="1" param="revision" step="-1">
+            <sequential>
+                <if>
+                    <isset property="stop"/>
+                    <then>
+                    </then>
+                    <else>
+                        <echo message="Checkout revision @{revision}"/>
+                        <exec executable="svn" outputproperty="svn.status">
+                            <arg line="update -r@{revision}"/>
+                        </exec>
+                        <trycatch>
+                            <try>
+                                <antcall target="compile"/>
+                            </try>
+                            <catch>
+                                <property name="compile.failed" value="true"/>
+                            </catch>
+                        </trycatch>
+                        <if>
+                            <isset property="compile.failed"/>
+                            <then>
+                                <exec executable="svn" outputproperty="svn.log">
+                                    <arg line="log -r@{revision}"/>
+                                </exec>
+                                <echo message="Project compiled with errors"/>
+                                <echo file="diff@{revision}.txt" message="${svn.log}"/>
+                            </then>
+                            <else>
+                                <echo message="Project compiled successfully"/>
+                                <property name="stop" value="true"/>
+                            </else>
+                        </if>
+                    </else>
+                </if>
+            </sequential>
+        </for>
     </target>
 
 
