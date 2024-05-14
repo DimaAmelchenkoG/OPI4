@@ -4,6 +4,7 @@ import java.time.LocalTime;
 
 public class PointCreater {
 
+
     public Point createPoint(Point point, long t1){
         TargetChecker targetChecker = new TargetChecker();
         System.out.println(point.getX() + " " + point.getY() + " " + point.getR() + " " +point.getTime() + " " +  point.getDate() + " " +point.getTarget());
