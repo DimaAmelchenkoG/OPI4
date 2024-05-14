@@ -136,24 +136,23 @@
         </jar>
     </target>
 
+    <!--
     <target name="diff">
-        <!-- Загрузка имен классов из файла параметров -->
+
         <loadfile property="checkClasses" srcFile="parameters.txt"/>
         <propertyregex property="classes.list" input="${checkClasses}" regexp="\s+" replace="," global="true"
                        override="true"/>
-        <!-- Проверка состояния рабочей копии -->
+
         <exec executable="git" outputproperty="git.status">
-            <arg line="status --porcelain"/>
+            <arg line="status porcelain"/>
         </exec>
 
-        <!-- Проверка, есть ли изменения в классах, указанных в файле параметров -->
         <for list="${classes.list}" param="class">
             <sequential>
                 <condition property="class.@{class}.changed">
                     <contains string="${git.status}" substring="@{class}"/>
                 </condition>
 
-                <!-- Если изменения есть, выполнение commit в репозиторий Git -->
                 <if>
                     <isset property="class.@{class}.changed"/>
                     <then>
@@ -170,7 +169,7 @@
         </for>
     </target>
 
-
+-->
 
     <target name="alt">
 
@@ -216,9 +215,8 @@
             </if>
     </for> -->
 
+    <!--
     <target name="report" depends="test">
-        <!-- Вывод результата выполнения тестов -->
-        <!-- Если тесты прошли успешно, выполнение commit -->
         <if>
             <not>
                 <isset property="test.failure"/>
@@ -235,5 +233,62 @@
         </if>
     </target>
 
+-->
+
+    <!-- history - если проект не удаётся скомпилировать (цель compile), загружается предыдущая версия из репозитория git -->
+    <target name="history">
+
+        <!-- хэш первой ревизии (для будущего сравнения, что достигли первой ревизии) -->
+        <exec executable="git" outputproperty="first_revision_hash">
+            <arg line="rev-list --max-parents=0 HEAD"/>
+        </exec>
+
+        <!-- хэш самой последней ревизии -->
+        <exec executable="git" outputproperty="git_base_revision">
+            <arg line="rev-list -n 1 HEAD"/>
+        </exec>
+
+        <trycatch>
+            <!-- попытка скомпилировать проект -->
+            <try>
+                <antcall target="compile"/>
+
+                <!-- получаем хэш текущей ревизии если удалось скомпилировать -->
+                <exec executable="git" outputproperty="git_current_revision">
+                    <arg line="rev-parse HEAD"/>
+                </exec>
+
+                <!-- формируется diff между последней и текущей ревизией -->
+                <echo message="run git diff ${git_base_revision}..${git_current_revision}"/>
+                <exec executable="git">
+                    <arg line="diff ${git_base_revision}..${git_current_revision}"/>
+                </exec>
+            </try>
+            <catch>
+                <!-- если не удалось скомпилировать то обрабатываем ошибку -->
+                <echo message="Error compiling project"/>
+                <!-- меняем ревизию на предыдущую -->
+                <exec executable="git" outputproperty="git_revision">
+                    <arg line="rev-parse HEAD^"/>
+                </exec>
+                <!-- если первая ревизия, то выводим сообщение, что пора останавливаться -->
+                <if>
+                    <equals arg1="${first_revision_hash}" arg2="${git_revision}"/>
+                    <then>
+                        <echo message="First revision reached / abort"/>
+                    </then>
+                    <!-- иначе меняем ревизию на предыдщую -->
+                    <else>
+                        <echo message="going down to the history... ${git_revision}"/>
+                        <exec executable="git">
+                            <arg line="checkout HEAD^"/>
+                        </exec>
+                        <!-- для новой ревизии запускаем снова ant history -->
+                        <runtarget target="history"/>
+                    </else>
+                </if>
+            </catch>
+        </trycatch>
+    </target>
 
 </project>
