@@ -14,7 +14,7 @@ public class HibernateUtils {
                 Configuration configuration = new Configuration().configure();
                 sessionFactory =  configuration.addAnnotatedClass(Point.class).buildSessionFactory();
             } catch (Exception e) {
-                System.out.println("Исключение!" + e);
+                System.out.println("Error!" + e);
             }
         }
         return sessionFactory;
