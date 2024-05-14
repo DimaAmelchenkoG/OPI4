@@ -9,6 +9,12 @@
         <fileset dir="${main.dir}" includes="*.java"/>
     </path>
 
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath>
+            <pathelement location="${contrib}"/>
+        </classpath>
+    </taskdef>
+
     <path id="classpath.test">
         <pathelement location="${junit}"/>
         <pathelement location="${hamcrest}"/>
@@ -24,7 +30,7 @@
         <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" includeantruntime="false"/>
     </target>
 
-    <target name="build" depends="compile">
+    <target name="build" depends="compile, music">
         <copy todir="${build.dir}">
             <fileset dir="${web.dir}"/>
         </copy>
@@ -52,7 +58,7 @@
         </war>
     </target>
 
-    <target name="clean" depends="music">
+    <target name="clean">
         <delete dir="${build.dir}"/>
         <delete dir="${junit.report.dir}"/>
     </target>
@@ -63,6 +69,8 @@
             <success source="${sounds.dir}/sample-3s.wav" duration="5500"/>
             <fail source="${sounds.dir}/ample-9s.wav" duration="5000"/>
         </sound>
+        <!-- Для отдельного запуска цели music -->
+        <!--        <antcall target="build"/>-->
     </target>
 
     <target name="test" depends="build">
@@ -125,6 +133,60 @@
                 <attribute name="SHA1-Digest" value="${sha1value}"/>
             </manifest>
         </jar>
+    </target>
+
+    <target name="diff">
+        <!-- Загрузка имен классов из файла параметров -->
+        <loadfile property="checkClasses" srcFile="parameters.txt"/>
+        <propertyregex property="classes.list" input="${checkClasses}" regexp="\s+" replace="," global="true"
+                       override="true"/>
+        <!-- Проверка состояния рабочей копии -->
+        <exec executable="git" outputproperty="git.status">
+            <arg line="status --porcelain"/>
+        </exec>
+
+        <!-- Проверка, есть ли изменения в классах, указанных в файле параметров -->
+        <for list="${classes.list}" param="class">
+            <sequential>
+                <condition property="class.@{class}.changed">
+                    <contains string="${git.status}" substring="@{class}"/>
+                </condition>
+
+                <!-- Если изменения есть, выполнение commit в репозиторий Git -->
+                <if>
+                    <isset property="class.@{class}.changed"/>
+                    <then>
+                        <echo message="Changes in class: @{class}"/>
+                        <exec executable="git">
+                            <arg line="add @{class}"/>
+                        </exec>
+                        <exec executable="git">
+                            <arg line="commit -m 'Commit changes in @{class}'"/>
+                        </exec>
+                    </then>
+                </if>
+            </sequential>
+        </for>
+        <!--  <for list="${classes.list}" param="class">
+            <sequential>
+                <condition property="changed">
+                    <contains string="${git.status}" substring="@{class}"/>
+                </condition>
+            </sequential>
+                           <if>
+                    <isset property="changed"/>
+                    <then>
+
+                        <exec executable="git">
+                            <arg line="add *"/>
+                        </exec>
+                        <exec executable="git">
+                            <arg line="commit -m 'Commit changes in classes'"/>
+                        </exec>
+                    </then>
+                </if>
+        </for> -->
+
     </target>
 
     <!--    <target name="env" depends="clean">-->
