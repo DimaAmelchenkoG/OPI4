@@ -219,4 +219,29 @@
         <echo message="***** MERGE COMPLETED *****"/>
     </target>
     -->
+
+
+    <target name="alt">
+
+        <mkdir dir="${other.dir}"/>
+        <copy todir="${other.main.dir}">
+            <fileset dir="${src.dir}"/>
+        </copy>
+
+        <replace dir="${other.main.dir}/java" includes="**/*.java" propertyFile="build.properties">
+            <replacefilter token="${our.class}" property="their.class"/>
+        </replace>
+
+        <replaceregexp match="${our.var}" replace="${their.var}" flags="g">
+            <fileset dir="${other.main.dir}"/>
+        </replaceregexp>
+
+        <move file="${other.main.dir}/java/com/example/lab3/${our.class}.java" tofile="${other.main.dir}/java/com/example/lab3/${their.class}.java"/>
+        <antcall target="build" inheritRefs="true">
+            <param name="src.dir" value="${other.main.dir}"/>
+            <param name="build.dir" value="alttarget"/>
+            <param name="jar.name" value="alt${jar.name}"/>
+        </antcall>
+
+    </target>
 </project>
