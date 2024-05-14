@@ -238,8 +238,11 @@
     первая ревизия из репозитория. Если такая ревизия найдена, то формируется файл, содержащий результат операции
     diff для всех файлов, измёненных в ревизии, следующей непосредственно за последней работающей.-->
     <target name="history">
-        <property name="revision" value="3"/>
-        <for begin="3" end="1" param="revision" step="-1">
+        <!-- получить последнюю ревизию -->
+        <exec executable="svn" outputproperty="svn.revision">
+            <arg line="info | grep Revision | awk '{print $2}'"/>
+        </exec>
+        <for begin="${svn.revision}" end="1" param="revision" step="-1">
             <sequential>
                 <if>
                     <isset property="stop"/>
