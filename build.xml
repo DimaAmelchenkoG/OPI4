@@ -238,10 +238,11 @@
     первая ревизия из репозитория. Если такая ревизия найдена, то формируется файл, содержащий результат операции
     diff для всех файлов, измёненных в ревизии, следующей непосредственно за последней работающей.-->
     <target name="history">
-        <!-- получить последнюю ревизию -->
         <exec executable="svn" outputproperty="svn.revision">
-            <arg line="info | grep Revision | awk '{print $2}'"/>
+            <arg line="info --show-item revision"/>
         </exec>
+        <echo message="Last revision: ${svn.revision}"/>
+        <property name="old_revision" value="${svn.revision}"/>
         <for begin="${svn.revision}" end="1" param="revision" step="-1">
             <sequential>
                 <if>
@@ -250,33 +251,36 @@
                     </then>
                     <else>
                         <echo message="Checkout revision @{revision}"/>
-                        <exec executable="svn" outputproperty="svn.status">
-                            <arg line="update -r@{revision}"/>
+                        <exec executable="svn">
+                            <arg line="update -r@{revision} --diff3-cmd theirs-full"/>
                         </exec>
+                        <echo message="checkout -r@{revision} ."/>
                         <trycatch>
                             <try>
                                 <antcall target="compile"/>
                             </try>
                             <catch>
-                                <property name="compile.failed" value="true"/>
+                                <echo message="Compile failed"/>
+                                <property name="@{revision}" value="true"/>
                             </catch>
                         </trycatch>
                         <if>
-                            <isset property="compile.failed"/>
+                            <isset property="@{revision}"/>
                             <then>
-                                <exec executable="svn" outputproperty="svn.log">
-                                    <arg line="log -r@{revision}"/>
-                                </exec>
-                                <echo message="Project compiled with errors"/>
-                                <echo file="diff@{revision}.txt" message="${svn.log}"/>
+                                <echo message="Compile failed"/>
                             </then>
                             <else>
                                 <echo message="Project compiled successfully"/>
+                                <exec executable="svn" outputproperty="svn.log">
+                                    <arg line="diff -r${old_revision}"/>
+                                </exec>
+                                <echo file="diff.txt" message="${svn.log}"/>
                                 <property name="stop" value="true"/>
                             </else>
                         </if>
                     </else>
                 </if>
+                <property name="old_revision" value="@{revision}"/>
             </sequential>
         </for>
     </target>
