@@ -27,7 +27,8 @@
     </target>
 
     <target name="compile" depends="prepare">
-        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" includeantruntime="false"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" includeantruntime="false"
+               failonerror="true" errorProperty="abebka"/>
     </target>
 
     <target name="build" depends="compile, music">
@@ -66,8 +67,8 @@
     <!-- music - воспроизведение музыки по завершению сборки (цель build) -->
     <target name="music">
         <sound>
-            <success source="${sounds.dir}/sample-3s.wav" duration="5500"/>
-            <fail source="${sounds.dir}/ample-9s.wav" duration="5000"/>
+            <success source="${sounds.dir}/est-probitie.wav" duration="5500"/>
+            <fail source="${sounds.dir}/ne-probil.wav" duration="5000"/>
         </sound>
         <!-- Для отдельного запуска цели music -->
         <!--        <antcall target="build"/>-->
@@ -91,7 +92,6 @@
                 </fileset>
             </batchtest>
         </junit>
-        <!--        <property name="testo" value="${tests.failed}"/>-->
     </target>
 
     <target name="native2ascii">
@@ -136,23 +136,24 @@
         </jar>
     </target>
 
-    <!--
     <target name="diff">
-
+        <!-- Загрузка имен классов из файла параметров -->
         <loadfile property="checkClasses" srcFile="parameters.txt"/>
         <propertyregex property="classes.list" input="${checkClasses}" regexp="\s+" replace="," global="true"
                        override="true"/>
-
+        <!-- Проверка состояния рабочей копии -->
         <exec executable="git" outputproperty="git.status">
-            <arg line="status porcelain"/>
+            <arg line="status --porcelain"/>
         </exec>
 
+        <!-- Проверка, есть ли изменения в классах, указанных в файле параметров -->
         <for list="${classes.list}" param="class">
             <sequential>
                 <condition property="class.@{class}.changed">
                     <contains string="${git.status}" substring="@{class}"/>
                 </condition>
 
+                <!-- Если изменения есть, выполнение commit в репозиторий Git -->
                 <if>
                     <isset property="class.@{class}.changed"/>
                     <then>
@@ -168,11 +169,29 @@
             </sequential>
         </for>
     </target>
+    <!--  <for list="${classes.list}" param="class">
+    <sequential>
+        <condition property="changed">
+            <contains string="${git.status}" substring="@{class}"/>
+        </condition>
+    </sequential>
+                   <if>
+            <isset property="changed"/>
+            <then>
 
--->
+                <exec executable="git">
+                    <arg line="add *"/>
+                </exec>
+                <exec executable="git">
+                    <arg line="commit -m 'Commit changes in classes'"/>
+                </exec>
+            </then>
+        </if>
+</for> -->
+
 
     <target name="alt">
-
+        <delete dir="${other.dir}"/>
         <mkdir dir="${other.dir}"/>
         <copy todir="${other.main.dir}">
             <fileset dir="${src.dir}"/>
@@ -186,7 +205,8 @@
             <fileset dir="${other.main.dir}"/>
         </replaceregexp>
 
-        <move file="${other.main.dir}/java/com/example/lab3/${our.class}.java" tofile="${other.main.dir}/java/com/example/lab3/${their.class}.java"/>
+        <move file="${other.main.dir}/java/com/example/lab3/${our.class}.java"
+              tofile="${other.main.dir}/java/com/example/lab3/${their.class}.java"/>
         <antcall target="build" inheritRefs="true">
             <param name="src.dir" value="${other.main.dir}"/>
             <param name="build.dir" value="alttarget"/>
@@ -195,28 +215,8 @@
 
     </target>
 
-    <!--  <for list="${classes.list}" param="class">
-        <sequential>
-            <condition property="changed">
-                <contains string="${git.status}" substring="@{class}"/>
-            </condition>
-        </sequential>
-                       <if>
-                <isset property="changed"/>
-                <then>
-
-                    <exec executable="git">
-                        <arg line="add *"/>
-                    </exec>
-                    <exec executable="git">
-                        <arg line="commit -m 'Commit changes in classes'"/>
-                    </exec>
-                </then>
-            </if>
-    </for> -->
-
-    <!--
     <target name="report" depends="test">
+        <!-- Если тесты прошли успешно, выполнение commit -->
         <if>
             <not>
                 <isset property="test.failure"/>
@@ -224,7 +224,7 @@
             <then>
                 <echo message="Tests passed"/>
                 <exec executable="git">
-                    <arg line="add ${junit.output.dir}/*.xml"/>
+                    <arg line="add ${junit.report.dir}/*.xml"/>
                 </exec>
                 <exec executable="git">
                     <arg line="commit -m 'Add JUnit report'"/>
@@ -233,62 +233,53 @@
         </if>
     </target>
 
--->
-
-    <!-- history - если проект не удаётся скомпилировать (цель compile), загружается предыдущая версия из репозитория git -->
+    <!--    **history** - если проект не удаётся скомпилировать (цель compile), загружается предыдущая версия из
+    репозитория svn. Операция повторяется до тех пор, пока проект не удастся собрать, либо не будет получена самая
+    первая ревизия из репозитория. Если такая ревизия найдена, то формируется файл, содержащий результат операции
+    diff для всех файлов, измёненных в ревизии, следующей непосредственно за последней работающей.-->
     <target name="history">
-
-        <!-- хэш первой ревизии (для будущего сравнения, что достигли первой ревизии) -->
-        <exec executable="git" outputproperty="first_revision_hash">
-            <arg line="rev-list --max-parents=0 HEAD"/>
+        <!-- получить последнюю ревизию -->
+        <exec executable="svn" outputproperty="svn.revision">
+            <arg line="info | grep Revision | awk '{print $2}'"/>
         </exec>
-
-        <!-- хэш самой последней ревизии -->
-        <exec executable="git" outputproperty="git_base_revision">
-            <arg line="rev-list -n 1 HEAD"/>
-        </exec>
-
-        <trycatch>
-            <!-- попытка скомпилировать проект -->
-            <try>
-                <antcall target="compile"/>
-
-                <!-- получаем хэш текущей ревизии если удалось скомпилировать -->
-                <exec executable="git" outputproperty="git_current_revision">
-                    <arg line="rev-parse HEAD"/>
-                </exec>
-
-                <!-- формируется diff между последней и текущей ревизией -->
-                <echo message="run git diff ${git_base_revision}..${git_current_revision}"/>
-                <exec executable="git">
-                    <arg line="diff ${git_base_revision}..${git_current_revision}"/>
-                </exec>
-            </try>
-            <catch>
-                <!-- если не удалось скомпилировать то обрабатываем ошибку -->
-                <echo message="Error compiling project"/>
-                <!-- меняем ревизию на предыдущую -->
-                <exec executable="git" outputproperty="git_revision">
-                    <arg line="rev-parse HEAD^"/>
-                </exec>
-                <!-- если первая ревизия, то выводим сообщение, что пора останавливаться -->
+        <for begin="${svn.revision}" end="1" param="revision" step="-1">
+            <sequential>
                 <if>
-                    <equals arg1="${first_revision_hash}" arg2="${git_revision}"/>
+                    <isset property="stop"/>
                     <then>
-                        <echo message="First revision reached / abort"/>
                     </then>
-                    <!-- иначе меняем ревизию на предыдщую -->
                     <else>
-                        <echo message="going down to the history... ${git_revision}"/>
-                        <exec executable="git">
-                            <arg line="checkout HEAD^"/>
+                        <echo message="Checkout revision @{revision}"/>
+                        <exec executable="svn" outputproperty="svn.status">
+                            <arg line="update -r@{revision}"/>
                         </exec>
-                        <!-- для новой ревизии запускаем снова ant history -->
-                        <runtarget target="history"/>
+                        <trycatch>
+                            <try>
+                                <antcall target="compile"/>
+                            </try>
+                            <catch>
+                                <property name="compile.failed" value="true"/>
+                            </catch>
+                        </trycatch>
+                        <if>
+                            <isset property="compile.failed"/>
+                            <then>
+                                <exec executable="svn" outputproperty="svn.log">
+                                    <arg line="log -r@{revision}"/>
+                                </exec>
+                                <echo message="Project compiled with errors"/>
+                                <echo file="diff@{revision}.txt" message="${svn.log}"/>
+                            </then>
+                            <else>
+                                <echo message="Project compiled successfully"/>
+                                <property name="stop" value="true"/>
+                            </else>
+                        </if>
                     </else>
                 </if>
-            </catch>
-        </trycatch>
+            </sequential>
+        </for>
     </target>
+
 
 </project>

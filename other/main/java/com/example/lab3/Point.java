@@ -30,7 +30,7 @@ public class Point implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "point_id", nullable = false)
     private Long id;
-
+    
     @Column(name = "point_x", nullable = false)
     private String x;
     @Column(name = "point_y", nullable = false)
