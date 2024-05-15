@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "tablepoint")
 public class Point implements Serializable {
-
+ //kdghjkjnlj
     /**
      * Default constructor
      * @param x

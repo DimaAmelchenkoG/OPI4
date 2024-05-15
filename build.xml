@@ -31,7 +31,7 @@
                failonerror="true" errorProperty="abebka"/>
     </target>
 
-    <target name="build" depends="compile, music">
+    <target name="build" depends="compile">
         <copy todir="${build.dir}">
             <fileset dir="${web.dir}"/>
         </copy>
@@ -68,8 +68,9 @@
     <target name="music">
         <sound>
             <success source="${sounds.dir}/est-probitie.wav" duration="5500"/>
-            <fail source="${sounds.dir}/ne-probil.wav" duration="5000"/>
+            <fail source="${sounds.dir}/ne-probil.wav" duration="5500"/>
         </sound>
+        <antcall target="build"/>
         <!-- Для отдельного запуска цели music -->
         <!--        <antcall target="build"/>-->
     </target>
