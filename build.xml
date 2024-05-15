@@ -139,7 +139,7 @@
     <target name="diff">
         <!-- Загрузка имен классов из файла параметров -->
         <loadfile property="checkClasses" srcFile="parameters.txt"/>
-        <propertyregex property="classes.list" input="${checkClasses}" regexp="\s+" replace="," global="true"
+        <propertyregex property="checkClasses.list" input="${checkClasses}" regexp="\s+" replace="," global="true"
                        override="true"/>
         <!-- Проверка состояния рабочей копии -->
         <exec executable="git" outputproperty="git.status">
@@ -147,7 +147,7 @@
         </exec>
 
         <!-- Проверка, есть ли изменения в классах, указанных в файле параметров -->
-        <for list="${classes.list}" param="class">
+        <for list="${checkClasses.list}" param="class">
             <sequential>
                 <condition property="class.@{class}.changed">
                     <contains string="${git.status}" substring="@{class}"/>
@@ -159,7 +159,7 @@
                     <then>
                         <echo message="Changes in class: @{class}"/>
                         <exec executable="git">
-                            <arg line="add @{class}"/>
+                            <arg line="add *"/>
                         </exec>
                         <exec executable="git">
                             <arg line="commit -m 'Commit changes in @{class}'"/>
