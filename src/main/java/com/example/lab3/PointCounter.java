@@ -9,7 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 @ManagedBean
 @ApplicationScoped
-public class PointCounter implements PointCounterMBean, NotificationEmitter {
+public class PointCounter extends NotificationBroadcasterSupport implements PointCounterMBean, NotificationEmitter {
     private long totalPoints = 0;
     private long missedPoints = 0;
     private long consecutiveMisses = 0;
@@ -38,45 +38,17 @@ public class PointCounter implements PointCounterMBean, NotificationEmitter {
     @Override
     public void addPoint(boolean isHit) {
         totalPoints++;
-        System.out.println("total" + totalPoints);
         if (totalPoints % 15 == 0){
-            sendNotification(new Notification("hits.five.times", this, totalPoints, "15 hits"));
+            Notification notification = new Notification("hits.five.times",
+                    getClass().getSimpleName(), totalPoints, "15 hits");
+            sendNotification(notification);
         }
         if (!isHit) {
             missedPoints++;
             consecutiveMisses++;
-            if (consecutiveMisses == 4) {
-                sendNotification(new Notification("missed.four.times", this, totalPoints, "User missed 4 times in a row"));
-                consecutiveMisses = 0;
-            }
         } else {
             consecutiveMisses = 0;
         }
     }
 
-    @Override
-    public void addNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) {
-        notificationSupport.addNotificationListener(listener, filter, handback);
-    }
-
-    @Override
-    public void removeNotificationListener(NotificationListener listener) throws ListenerNotFoundException {
-        notificationSupport.removeNotificationListener(listener);
-    }
-
-    @Override
-    public MBeanNotificationInfo[] getNotificationInfo() {
-        return new MBeanNotificationInfo[] {
-            new MBeanNotificationInfo(new String[] {"missed.four.times"}, Notification.class.getName(), "User missed 4 times in a row")
-        };
-    }
-
-    private void sendNotification(Notification notification) {
-        notificationSupport.sendNotification(notification);
-    }
-
-    @Override
-    public void removeNotificationListener(NotificationListener listener, NotificationFilter filter, Object handback) throws ListenerNotFoundException {
-        notificationSupport.removeNotificationListener(listener, filter, handback);
-    }
 }
