@@ -3,6 +3,7 @@ package com.example.lab3;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+
 public class HibernateUtils {
     private static SessionFactory sessionFactory;
 
