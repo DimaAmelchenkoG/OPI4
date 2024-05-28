@@ -25,6 +25,9 @@ public class PointCounter extends NotificationBroadcasterSupport implements Poin
     //    simpleAgent.registerBean(this, "point counter");
     //}
 
+    @Inject
+    private Interval interval;
+
     @Override
     public long getTotalPoints() {
         return totalPoints;
@@ -37,6 +40,12 @@ public class PointCounter extends NotificationBroadcasterSupport implements Poin
 
     @Override
     public void addPoint(boolean isHit) {
+        if (totalPoints == 0){
+            interval.setStart();
+        } else {
+            interval.setInterval(totalPoints);
+        }
+
         totalPoints++;
         if (totalPoints % 15 == 0){
             Notification notification = new Notification("hits.five.times",
