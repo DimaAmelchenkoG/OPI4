@@ -8,6 +8,7 @@
 <!--                <property name="hibernate.connection.password">2456</property>-->
 <!--                <property name="connection.driver_class">org.postgresql.Driver</property>-->
 <!--                <property name="connection.url">jdbc:postgresql://127.0.0.1:5432/test</property>-->
+
         <property name="hibernate.connection.username">s336358</property>
         <property name="hibernate.connection.password">MyPassword</property>
         <property name="connection.driver_class">org.postgresql.Driver</property>
