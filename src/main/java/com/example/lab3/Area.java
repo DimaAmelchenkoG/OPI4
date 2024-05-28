@@ -1,6 +1,14 @@
 package com.example.lab3;
 
-public class AreaCounter implements AreaMBean {
+import jakarta.enterprise.context.ApplicationScoped;
+
+import javax.faces.bean.ManagedBean;
+
+@ManagedBean
+@ApplicationScoped
+public class Area implements AreaMBean {
+
+    @Override
     public Double getArea(float r) {
         double squareArea = Math.pow(r / 2, 2);
         double triangleArea = 0.5 * r * r;

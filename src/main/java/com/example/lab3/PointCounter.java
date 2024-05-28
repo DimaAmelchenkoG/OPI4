@@ -1,12 +1,29 @@
 package com.example.lab3;
 
+import javax.faces.bean.ManagedBean;
 import javax.management.*;
+import jakarta.inject.Inject;
+import jakarta.enterprise.context.Initialized;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.context.ApplicationScoped;
 
+@ManagedBean
+@ApplicationScoped
 public class PointCounter implements PointCounterMBean, NotificationEmitter {
     private long totalPoints = 0;
     private long missedPoints = 0;
     private long consecutiveMisses = 0;
     private final NotificationBroadcasterSupport notificationSupport = new NotificationBroadcasterSupport();
+
+    //@Inject
+    //private SimpleAgent simpleAgent;
+
+    //public PointCounter(){
+    //}
+
+    //public void init(@Observes @Initialized(ApplicationScoped.class) Object unused){
+    //    simpleAgent.registerBean(this, "point counter");
+    //}
 
     @Override
     public long getTotalPoints() {
@@ -21,6 +38,10 @@ public class PointCounter implements PointCounterMBean, NotificationEmitter {
     @Override
     public void addPoint(boolean isHit) {
         totalPoints++;
+        System.out.println("total" + totalPoints);
+        if (totalPoints % 15 == 0){
+            sendNotification(new Notification("hits.five.times", this, totalPoints, "15 hits"));
+        }
         if (!isHit) {
             missedPoints++;
             consecutiveMisses++;

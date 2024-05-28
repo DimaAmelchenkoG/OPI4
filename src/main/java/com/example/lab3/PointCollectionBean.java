@@ -2,6 +2,7 @@ package com.example.lab3;
 
 
 import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import java.io.Serializable;
@@ -24,12 +25,23 @@ public class PointCollectionBean implements Serializable {
     public List<Point> getPoints(){
         return points;
     }
+
+    @Inject
+    private PointCounter pointCounter;
     public void addPoint(){
+
         long t1 = System.nanoTime();
         PointCreater pointCreater = new PointCreater();
         newPoint = pointCreater.createPoint(newPoint, t1);
         CheckValid checkValid = new CheckValid();
         if (checkValid.checkAll(newPoint) == true) {
+            boolean hit;
+            if (newPoint.getTarget().equals("Hit")){
+                hit = true;
+            } else {
+                hit = false;
+            }
+            pointCounter.addPoint(hit);
             points.add(newPoint);
         }
         //
