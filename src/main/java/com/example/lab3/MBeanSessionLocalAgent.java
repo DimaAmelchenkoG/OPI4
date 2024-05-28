@@ -20,7 +20,7 @@ public class MBeanSessionLocalAgent {
     private PointCounter countMBean;
 
     @Inject
-    private Area areaMBean;
+    private Interval intervalMBean;
 
     private static final MBeanServer server;
 
@@ -34,12 +34,12 @@ public class MBeanSessionLocalAgent {
         ObjectName areamBean;
         try {
             countmBean = new ObjectName("mbeans:name=PointCounterMBean");
-            areamBean = new ObjectName("mbeans:name=AreaMBean");
+            areamBean = new ObjectName("mbeans:name=IntervalMBean");
             if (!server.isRegistered(countmBean)) {
                 server.registerMBean(countMBean, countmBean);
             }
             if (!server.isRegistered(areamBean)) {
-                server.registerMBean(areaMBean, areamBean);
+                server.registerMBean(intervalMBean, areamBean);
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -48,7 +48,7 @@ public class MBeanSessionLocalAgent {
 
     public void logSimpleAgentStarted() {
         System.out.println("CountMBean.logSimpleAgentStarted");
-        System.out.println("AreaMBean.logSimpleAgentStarted");
+        System.out.println("IntervalMBean.logSimpleAgentStarted");
     }
 
     public void startupCount(@Observes @Initialized(ApplicationScoped.class) Object context) {
